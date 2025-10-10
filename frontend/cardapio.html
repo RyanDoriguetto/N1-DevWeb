@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <title>Coffee – Cardápio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        margin: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+        font: 14px system-ui, Segoe UI, Roboto, Arial;
+      }
+      .wrap {
+        max-width: 900px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #1f2937;
+      }
+      th {
+        background: #0b1220;
+        color: #c7d2fe;
+        text-align: left;
+      }
+      tr:nth-child(even) {
+        background: #0c1426;
+      }
+      .right {
+        text-align: right;
+      }
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .pill {
+        border: 1px solid #334155;
+        border-radius: 999px;
+        padding: 4px 8px;
+      }
+      button {
+        background: #0b1220;
+        border: 1px solid #334155;
+        color: #e5e7eb;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      a.btn {
+        display: inline-block;
+        text-decoration: none;
+        background: #0b1220;
+        border: 1px solid #334155;
+        color: #e5e7eb;
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        background: #111827;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        padding: 8px 12px;
+        opacity: 0;
+        transition: 0.2s;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+      .badge {
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <h1>☕ Coffee • Cardápio</h1>
+        <div class="meta">
+          <span id="mesa" class="pill" style="display: none"></span>
+          <span id="who" class="pill"></span>
+          <a href="mesas.html" id="btnMesas" class="btn" style="display: none"
+            >Mesas</a
+          >
+          <button id="btnLogout">Sair</button>
+        </div>
+      </div>
+
+      <table id="tbl" style="display: none">
+        <thead>
+          <tr>
+            <th style="width: 80px">ID</th>
+            <th>Nome</th>
+            <th style="width: 130px">Categoria</th>
+            <th class="right" style="width: 120px">Preço</th>
+            <th class="right" style="width: 120px">Prep (min)</th>
+            <th style="width: 120px">Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="msg"></p>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+      const API_BASE = "http://localhost:8080";
+      const $ = (q) => document.querySelector(q);
+      const money = (n) =>
+        Number(n).toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+
+      function getToken() {
+        return localStorage.getItem("coffee_token");
+      }
+      function getRole() {
+        return (localStorage.getItem("coffee_role") || "").toUpperCase();
+      }
+      function getMesa() {
+        return localStorage.getItem("mesa_atual");
+      }
+      function cartKey() {
+        return "cart_mesa_" + getMesa();
+      }
+
+      function toast(t) {
+        const el = $("#toast");
+        el.textContent = t;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 1400);
+      }
+
+      // guarda login e mostra mesa/role
+      (function guard() {
+        const t = getToken();
+        if (!t) {
+          location.href = "login.html";
+          return;
+        }
+        const role = getRole();
+        $("#who").textContent = role || "—";
+        const mesaAtual = getMesa();
+        if (mesaAtual) {
+          const m = $("#mesa");
+          m.style.display = "";
+          m.innerHTML = 'Mesa <span class="badge">' + mesaAtual + "</span>";
+          $("#btnMesas").style.display = "";
+        }
+      })();
+
+      function loadCart() {
+        const k = cartKey();
+        try {
+          return JSON.parse(localStorage.getItem(k) || "[]");
+        } catch {
+          return [];
+        }
+      }
+      function saveCart(items) {
+        localStorage.setItem(cartKey(), JSON.stringify(items));
+      }
+
+      function addToMesa(prod) {
+        const mesa = getMesa();
+        if (!mesa) {
+          alert("Escolha uma mesa primeiro.");
+          location.href = "mesas.html";
+          return;
+        }
+        const cart = loadCart();
+        const idx = cart.findIndex((it) => it.id === prod.id);
+        if (idx >= 0) {
+          cart[idx].qty += 1;
+        } else {
+          cart.push({
+            id: prod.id,
+            name: prod.name,
+            price: prod.price,
+            qty: 1,
+          });
+        }
+        saveCart(cart);
+        toast(`Adicionado à mesa ${mesa}: ${prod.name}`);
+      }
+
+      async function carregar() {
+        try {
+          const r = await fetch(API_BASE + "/api/produtos", {
+            headers: {
+              Authorization: "Bearer " + getToken(),
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          let lista = await r.json();
+          if (!Array.isArray(lista)) lista = lista.value ?? [];
+          lista.sort((a, b) => a.id - b.id);
+
+          const tbody = $("#tbl tbody");
+          tbody.innerHTML = "";
+          for (const p of lista) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.name ?? ""}</td>
+            <td>${p.category ?? ""}</td>
+            <td class="right">${money(p.price ?? 0)}</td>
+            <td class="right">${p.prepTimeMin ?? ""}</td>
+            <td><button data-add="${p.id}">Adicionar</button></td>`;
+            tbody.appendChild(tr);
+          }
+
+          // click "Adicionar"
+          tbody.querySelectorAll("[data-add]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const row = btn.closest("tr").children;
+              const prod = {
+                id: Number(row[0].textContent),
+                name: row[1].textContent,
+                category: row[2].textContent,
+                price: Number(
+                  String(row[3].textContent)
+                    .replace(/\./g, "")
+                    .replace(",", ".")
+                ),
+              };
+              addToMesa(prod);
+            });
+          });
+
+          $("#tbl").style.display = "";
+          $("#msg").textContent = "";
+        } catch (e) {
+          $("#msg").textContent = "Falha: " + e.message;
+        }
+      }
+
+      $("#btnLogout").addEventListener("click", () => {
+        localStorage.removeItem("coffee_token");
+        localStorage.removeItem("coffee_role");
+        localStorage.removeItem("mesa_atual");
+        location.href = "login.html";
+      });
+
+      carregar();
+    </script>
+  </body>
+</html>

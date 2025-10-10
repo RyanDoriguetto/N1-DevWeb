@@ -1,0 +1,14 @@
+// src/app/auth/guards/role.guard.ts (exemplo)
+import { Injectable } from '@angular/core';
+import { CanActivate, ActivatedRouteSnapshot } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+
+@Injectable({ providedIn: 'root' })
+export class RoleGuard implements CanActivate {
+  constructor(private auth: AuthService) {}
+  canActivate(route: ActivatedRouteSnapshot): boolean {
+    const expected: string[] = route.data['roles'];
+    const user = this.auth.currentUserValue;
+    return !!user && !!user.role && expected.includes(user.role);
+  }
+}
