@@ -1,0 +1,373 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <title>Coffee – Produtos (CRUD)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --muted: #94a3b8;
+        --text: #e5e7eb;
+        --ok: #22c55e;
+        --err: #ef4444;
+        --accent: #6366f1;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #0b1220, #0f172a);
+        color: var(--text);
+        font: 14px/1.4 system-ui, Segoe UI, Roboto, Arial;
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: #0b1220;
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      }
+      h1 {
+        margin: 0 0 12px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      button {
+        background: linear-gradient(180deg, #4f46e5, #4338ca);
+        color: #fff;
+        border: 0;
+        padding: 9px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #0b1220;
+        border: 1px solid #26314d;
+      }
+      button.danger {
+        background: linear-gradient(180deg, #ef4444, #dc2626);
+      }
+      input,
+      select {
+        background: #0b1220;
+        border: 1px solid #26314d;
+        color: var(--text);
+        padding: 9px 10px;
+        border-radius: 10px;
+        outline: none;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #1f2937;
+      }
+      th {
+        background: #0b1220;
+        color: #c7d2fe;
+        text-align: left;
+      }
+      tr:nth-child(even) {
+        background: #0c1426;
+      }
+      .right {
+        text-align: right;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .grid .col-span-2 {
+        grid-column: span 2;
+      }
+      .grid .col-span-3 {
+        grid-column: span 3;
+      }
+      .grid .col-span-6 {
+        grid-column: span 6;
+      }
+      .pill {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        padding: 6px 8px;
+        border: 1px solid #334155;
+        border-radius: 999px;
+      }
+      .muted {
+        color: #94a3b8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="row" style="justify-content: space-between">
+          <h1>☕ Coffee • Produtos (CRUD)</h1>
+          <div class="row">
+            <button id="btnMenu" class="secondary">Cardápio</button>
+            <span id="who" class="muted">ADMIN</span>
+            <button id="btnLogout" class="secondary">Sair</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin: 8px 0 12px">
+          <span class="pill"
+            >Ordenar por <b>ID</b> <span id="sortDir">asc</span></span
+          >
+          <button id="btnSort" class="secondary">Alternar</button>
+          <button id="btnReload" class="secondary">Recarregar</button>
+        </div>
+
+        <table id="prodTable" style="display: none">
+          <thead>
+            <tr>
+              <th style="width: 80px">ID</th>
+              <th>Nome</th>
+              <th style="width: 130px">Categoria</th>
+              <th class="right" style="width: 120px">Preço</th>
+              <th class="right" style="width: 120px">Prep (min)</th>
+              <th style="width: 170px">Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <h3 id="formTitle" style="margin: 14px 0 6px">Novo produto</h3>
+        <div class="grid">
+          <input id="id" class="col-span-1" placeholder="ID (auto)" disabled />
+          <input id="name" class="col-span-3" placeholder="Nome" />
+          <select id="category" class="col-span-2">
+            <option value="CAFE">CAFE</option>
+            <option value="BEBIDA">BEBIDA</option>
+            <option value="COMIDA">COMIDA</option>
+            <option value="SOBREMESA">SOBREMESA</option>
+          </select>
+
+          <input
+            id="price"
+            class="col-span-2"
+            placeholder="Preço (ex: 12.50)"
+          />
+          <input id="prepTimeMin" class="col-span-2" placeholder="Prep (min)" />
+          <select id="available" class="col-span-2">
+            <option value="true">Disponível</option>
+            <option value="false">Indisponível</option>
+          </select>
+
+          <div class="col-span-6 row" style="justify-content: flex-end">
+            <button id="btnNew" class="secondary">Novo</button>
+            <button id="btnSave">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8080";
+      const $ = (q) => document.querySelector(q);
+
+      // --------- guarda / proteção ----------
+      function getToken() {
+        return localStorage.getItem("coffee_token");
+      }
+      function getRole() {
+        return (localStorage.getItem("coffee_role") || "").toUpperCase();
+      }
+      function guard() {
+        const tok = getToken(),
+          role = getRole();
+        if (!tok || role !== "ADMIN") {
+          location.href = "login.html";
+        }
+        $("#who").textContent = "ADMIN";
+      }
+      guard();
+
+      // --------- estado / helpers ----------
+      let sortAsc = true;
+      const money = (n) =>
+        Number(n).toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      function fillForm(p) {
+        $("#id").value = p?.id ?? "";
+        $("#name").value = p?.name ?? "";
+        $("#category").value = p?.category ?? "CAFE";
+        $("#price").value = p?.price ?? "";
+        $("#prepTimeMin").value = p?.prepTimeMin ?? "";
+        $("#available").value = String(p?.available ?? true);
+        $("#formTitle").textContent = p?.id
+          ? `Editando #${p.id}`
+          : "Novo produto";
+      }
+      function readForm() {
+        return {
+          name: $("#name").value.trim(),
+          category: $("#category").value,
+          price: Number(
+            String($("#price").value).replace(/\./g, "").replace(",", ".")
+          ),
+          prepTimeMin: Number(
+            String($("#prepTimeMin").value).replace(/\D/g, "")
+          ),
+          available: $("#available").value === "true",
+        };
+      }
+
+      // --------- CRUD ----------
+      async function carregarProdutos() {
+        const r = await fetch(API_BASE + "/api/produtos", {
+          headers: {
+            Authorization: "Bearer " + getToken(),
+            Accept: "application/json",
+          },
+          cache: "no-store",
+        });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        let lista = await r.json();
+        if (!Array.isArray(lista)) lista = lista.value ?? [];
+        lista.sort((a, b) => (sortAsc ? a.id - b.id : b.id - a.id));
+        renderTabela(lista);
+        $("#prodTable").style.display = "";
+      }
+
+      function renderTabela(lista) {
+        const tbody = $("#prodTable tbody");
+        tbody.innerHTML = "";
+        for (const p of lista) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.name ?? ""}</td>
+          <td>${p.category ?? ""}</td>
+          <td class="right">${money(p.price ?? 0)}</td>
+          <td class="right">${p.prepTimeMin ?? ""}</td>
+          <td>
+            <div class="row" style="gap:6px">
+              <button class="secondary" data-edit="${p.id}">Editar</button>
+              <button class="danger" data-del="${p.id}">Excluir</button>
+            </div>
+          </td>`;
+          tbody.appendChild(tr);
+        }
+        // editar
+        tbody.querySelectorAll("[data-edit]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = Number(btn.dataset.edit);
+            const row = btn.closest("tr").children;
+            fillForm({
+              id,
+              name: row[1].textContent,
+              category: row[2].textContent,
+              price: Number(
+                String(row[3].textContent).replace(/\./g, "").replace(",", ".")
+              ),
+              prepTimeMin: Number(row[4].textContent),
+              available: true,
+            });
+            window.scrollTo({
+              top: document.body.scrollHeight,
+              behavior: "smooth",
+            });
+          });
+        });
+        // excluir
+        tbody.querySelectorAll("[data-del]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = Number(btn.dataset.del);
+            if (!confirm(`Excluir produto #${id}?`)) return;
+            const r = await fetch(`${API_BASE}/api/produtos/${id}`, {
+              method: "DELETE",
+              headers: { Authorization: "Bearer " + getToken() },
+            });
+            if (!r.ok) return alert("Erro: HTTP " + r.status);
+            await carregarProdutos();
+            fillForm(null);
+          });
+        });
+      }
+
+      async function salvar() {
+        const id = $("#id").value ? Number($("#id").value) : null;
+        const body = readForm();
+        if (!body.name) return alert("Informe o nome");
+        if (!body.category) return alert("Informe a categoria");
+        if (isNaN(body.price)) return alert("Preço inválido");
+        if (isNaN(body.prepTimeMin)) return alert("Prep (min) inválido");
+
+        const url = id
+          ? `${API_BASE}/api/produtos/${id}`
+          : `${API_BASE}/api/produtos`;
+        const method = id ? "PUT" : "POST";
+
+        const r = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + getToken(),
+          },
+          body: JSON.stringify(id ? { ...body, id } : body),
+          cache: "no-store",
+        });
+        if (!r.ok) {
+          let msg = "HTTP " + r.status;
+          try {
+            const e = await r.json();
+            if (e?.message) msg += " - " + e.message;
+          } catch {}
+          return alert("Erro ao salvar: " + msg);
+        }
+        await carregarProdutos();
+        fillForm(null);
+        alert(id ? "Produto atualizado!" : "Produto criado!");
+      }
+
+      // --------- eventos ----------
+      $("#btnReload").addEventListener("click", carregarProdutos);
+      $("#btnSave").addEventListener("click", salvar);
+      $("#btnNew").addEventListener("click", () => fillForm(null));
+      $("#btnSort").addEventListener("click", () => {
+        sortAsc = !sortAsc;
+        $("#sortDir").textContent = sortAsc ? "asc" : "desc";
+        carregarProdutos();
+      });
+      $("#btnLogout").addEventListener("click", () => {
+        localStorage.removeItem("coffee_token");
+        localStorage.removeItem("coffee_role");
+        location.href = "login.html";
+      });
+
+      // inicial
+      fillForm(null);
+      carregarProdutos().catch((e) => alert("Falha ao carregar: " + e.message));
+
+      document.getElementById("btnMenu").addEventListener("click", () => {
+        location.href = "cardapio.html";
+      });
+    </script>
+  </body>
+</html>

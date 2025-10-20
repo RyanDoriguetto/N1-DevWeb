@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <title>Coffee – Mesas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--ok:#22c55e;--err:#ef4444;--accent:#6366f1}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text);font:14px/1.4 system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .muted{color:var(--muted)}
+    .card{background:#0b1220;border:1px solid rgba(99,102,241,.35);border-radius:16px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+    .grid{display:grid;grid-template-columns:repeat(10,1fr);gap:10px}
+    .mesa{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;border-radius:12px;padding:14px;cursor:pointer;border:1px solid #26314d;background:#0b1220;transition:.15s}
+    .mesa:hover{transform:translateY(-2px)}
+    .mesa .num{font-weight:700}
+    .mesa .status{font-size:12px}
+    .livre{outline:2px solid #14532d;background:#052e16}
+    .livre .status{color:var(--ok)}
+    .ocupada{outline:2px solid #7f1d1d;background:#3f0a0a}
+    .ocupada .status{color:var(--err)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    button{background:linear-gradient(180deg,#4f46e5,#4338ca);color:#fff;border:0;padding:9px 12px;border-radius:10px;cursor:pointer}
+    button.secondary{background:#0b1220;border:1px solid #26314d}
+    .legend{display:flex;gap:8px;align-items:center}
+    .pill{border-radius:999px;padding:4px 8px;border:1px solid #334155}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>☕ Coffee • Mesas</h1>
+      <div class="row">
+        <span id="who" class="muted"></span>
+        <button id="btnProdutos" class="secondary">Produtos (CRUD)</button>
+        <button id="btnLogout" class="secondary">Sair</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="row" style="justify-content:space-between">
+        <div class="legend">
+          <span class="pill">Clique em uma mesa para abrir o cardápio</span>
+        </div>
+        <div class="row">
+          <span class="pill" style="background:#052e16;border-color:#14532d;color:#22c55e">Livre</span>
+          <span class="pill" style="background:#3f0a0a;border-color:#7f1d1d;color:#ef4444">Ocupada</span>
+          <button id="btnLiberarTodas" class="secondary">Liberar todas</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mesas" class="grid"></div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+    const $ = (q) => document.querySelector(q);
+
+    // --- guarda (CAIXA/ATENDENTE/ADMIN podem entrar; se quiser só ATENDENTE, troque abaixo)
+    function getTok(){ return localStorage.getItem("coffee_token"); }
+    function getRole(){ return (localStorage.getItem("coffee_role")||"").toUpperCase(); }
+    function guard(){
+      const t=getTok(), r=getRole();
+      if(!t || !["ADMIN","CAIXA","ATENDENTE"].includes(r)) location.href="login.html";
+      $("#who").textContent = r;
+    }
+    guard();
+
+    // --- estado de ocupação (persistido em localStorage)
+    function getOcupadas(){
+      try{ return JSON.parse(localStorage.getItem("mesas_ocupadas")||"[]"); }catch{ return []; }
+    }
+    function setOcupadas(arr){
+      localStorage.setItem("mesas_ocupadas", JSON.stringify(arr));
+    }
+    function isOcupada(n){ return getOcupadas().includes(n); }
+    function ocuparMesa(n){
+      const s = new Set(getOcupadas()); s.add(n); setOcupadas([...s]);
+    }
+    function liberarMesa(n){
+      setOcupadas(getOcupadas().filter(x=>x!==n));
+      localStorage.removeItem("pedido_mesa_"+n);
+    }
+
+    // --- render
+    function renderMesas(){
+      const cont = $("#mesas");
+      cont.innerHTML = "";
+      for(let i=1;i<=50;i++){
+        const div = document.createElement("div");
+        const ocup = isOcupada(i);
+        div.className = "mesa " + (ocup ? "ocupada" : "livre");
+        div.innerHTML = `
+          <div class="num">Mesa ${i}</div>
+          <div class="status">${ocup ? "Ocupada" : "Livre"}</div>
+          <div class="row">
+            ${ocup ? `<button class="secondary" data-liberar="${i}">Liberar</button>` : ``}
+          </div>
+        `;
+        div.addEventListener("click", (ev)=>{
+          // evita conflito com botão liberar
+          if(ev.target && ev.target.matches("[data-liberar]")) return;
+          localStorage.setItem("mesa_atual", String(i));
+          if(!ocup) ocuparMesa(i);
+          location.href = "cardapio.html";
+        });
+        // liberar
+        div.querySelectorAll("[data-liberar]").forEach(btn=>{
+          btn.addEventListener("click",(e)=>{
+            e.stopPropagation();
+            const n = Number(btn.dataset.liberar);
+            liberarMesa(n);
+            renderMesas();
+          });
+        });
+        cont.appendChild(div);
+      }
+    }
+
+    // botões topo
+    $("#btnLogout").addEventListener("click", ()=>{
+      localStorage.removeItem("coffee_token");
+      localStorage.removeItem("coffee_role");
+      location.href="login.html";
+    });
+    $("#btnProdutos").addEventListener("click", ()=> location.href="produtos.html");
+    $("#btnLiberarTodas").addEventListener("click", ()=>{
+      if(confirm("Liberar TODAS as mesas?")){
+        setOcupadas([]);
+        for(let i=1;i<=50;i++) localStorage.removeItem("pedido_mesa_"+i);
+        renderMesas();
+      }
+    });
+
+    renderMesas();
+  </script>
+</body>
+</html>

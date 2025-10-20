@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <title>Coffee – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --b:#334155; --txt:#e5e7eb; --ok:#22c55e; --err:#ef4444; --pri:#4f46e5; }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      background:var(--bg); color:var(--txt); font:14px/1.4 system-ui,Segoe UI,Arial
+    }
+    .card{
+      width:340px; background:var(--card); border:1px solid var(--b);
+      border-radius:14px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    h1{ margin:0 0 12px; font-size:20px }
+    .row{ display:flex; flex-direction:column; gap:10px }
+    input{
+      padding:10px; border-radius:10px; border:1px solid var(--b);
+      background:#0b1220; color:var(--txt); outline:none
+    }
+    button{
+      padding:10px; border-radius:10px; border:0; background:var(--pri);
+      color:#fff; cursor:pointer
+    }
+    .msg{ min-height:18px; font-size:13px }
+    .ok{ color:var(--ok) } .err{ color:var(--err) }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>☕ Coffee • Login</h1>
+    <div class="row">
+      <input id="email" value="admin@coffee.local" placeholder="email" />
+      <input id="password" type="password" value="admin" placeholder="senha" />
+      <button id="btnLogin" type="button">Entrar</button>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+    const $ = (q) => document.querySelector(q);
+
+    async function doLogin() {
+      const email = $("#email").value.trim();
+      const password = $("#password").value.trim();
+      const btn = $("#btnLogin");
+      const msg = $("#loginMsg");
+      msg.textContent = ""; msg.className = "msg";
+      if (!email || !password) { msg.textContent = "Informe e-mail e senha."; msg.classList.add("err"); return; }
+
+      btn.disabled = true;
+      try {
+        const r = await fetch(API_BASE + "/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+
+        const data = await r.json();
+        // guarda para as páginas
+        localStorage.setItem("coffee_token", data.accessToken);
+        localStorage.setItem("coffee_role", (data.role || "").toUpperCase());
+
+        msg.textContent = "Autenticado!";
+        msg.classList.add("ok");
+
+        // redireciona por role
+        const role = (data.role || "").toUpperCase();
+        if (role === "ADMIN") {
+          location.href = "produtos.html";
+        } else {
+          location.href = "cardapio.html";
+        }
+      } catch (e) {
+        msg.textContent = "Falha no login: " + e.message;
+        msg.classList.add("err");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    $("#btnLogin").addEventListener("click", doLogin);
+    // Enter para enviar
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") doLogin();
+    });
+  </script>
+</body>
+</html>

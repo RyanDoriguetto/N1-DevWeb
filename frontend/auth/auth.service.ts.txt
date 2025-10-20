@@ -1,0 +1,16 @@
+// src/app/auth/services/auth.service.ts (exemplo)
+import { Injectable } from '@angular/core';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  token: string | null = null;
+  role: 'ADMIN'|'CAIXA'|'ATENDENTE'|null = null;
+
+  login(email: string, password: string) {
+    // faça POST para /api/auth/login e salve token/role
+  }
+
+  logout(){ this.token = null; this.role = null; localStorage.clear(); }
+
+  get currentUserValue(){ return { role: this.role }; }
+}
