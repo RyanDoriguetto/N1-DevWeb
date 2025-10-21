@@ -1,20 +1,22 @@
-import { CanActivateFn, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { inject } from '@angular/core';
-import { AuthService } from './auth.service';
-import { Role } from '../shared/models';
 
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const router = inject(Router);
-  const auth = inject(AuthService);
-  const allowed = route.data?.['roles'] as Role[] | undefined;
 
-  if (!auth.isAuthenticated) {
+  const token = localStorage.getItem('access_token');
+  if (!token) {
     router.navigateByUrl('/login');
     return false;
   }
-  if (allowed && (!auth.role || !allowed.includes(auth.role))) {
-    router.navigateByUrl('/login');
+
+  const allowed = (route.data?.['roles'] as string[] | undefined) ?? undefined;
+  const role = (localStorage.getItem('role') || '').toUpperCase();
+
+  if (allowed && !allowed.map(r => r.toUpperCase()).includes(role)) {
+    router.navigateByUrl('/');
     return false;
   }
+
   return true;
 };
