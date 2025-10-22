@@ -42,7 +42,7 @@ Antes de rodar o projeto, você precisa ter os seguintes programas instalados:
    O banco de dados está configurado para rodar em um contêiner Docker. Para rodar o banco, use:
 
    ```bash
-   docker-compose up
+   docker-compose up -d
    ```
 
 ## Rodando o Frontend (Angular)
@@ -76,6 +76,8 @@ Antes de rodar o projeto, você precisa ter os seguintes programas instalados:
 ### Frontend
 
 - **Tela de Login**: Realização de login para acessar o sistema.
+  - login = admin@coffee.local
+  - senha = 123
 - **Produtos**: Exibição de produtos com a possibilidade de adicionar ao pedido.
 - **Mesas**: Gerenciamento de mesas e visualização de pedidos em andamento.
 - **Pedidos**: Realização de pedidos com a opção de visualizar e confirmar itens.
