@@ -12,7 +12,8 @@ public class DebugController {
 
   @GetMapping("/roles")
   public String whoAmI(Authentication auth) {
-    if (auth == null) return "anonymous";
+    if (auth == null)
+      return "anonymous";
     String user = auth.getName();
     String roles = auth.getAuthorities().stream()
         .map(GrantedAuthority::getAuthority)

@@ -1,2 +1,5 @@
 package com.example.coffee.domain.enums;
-public enum ProductCategory { CAFE, BEBIDA, COMIDA, SOBREMESA }
+
+public enum ProductCategory {
+    CAFE, BEBIDA, COMIDA, SOBREMESA
+}

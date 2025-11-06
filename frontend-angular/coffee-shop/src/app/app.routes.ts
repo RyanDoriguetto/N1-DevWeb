@@ -44,6 +44,15 @@ export const routes: Routes = [
       import('./features/mesas/mesas.component').then(m => m.MesasComponent),
   },
 
+  // NOVA ROTA ADICIONADA - coloque ANTES da rota com parâmetro similar
+  {
+    path: 'mesas/:mesaId/detalhes',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'CAIXA', 'ATENDENTE'] },
+    loadComponent: () =>
+      import('./features/mesas/mesa-detalhes.component').then(m => m.MesaDetalhesComponent),
+  },
+
   {
     path: 'cardapio/:mesaId',
     canActivate: [authGuard, roleGuard],
@@ -59,8 +68,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/pedido/pedido-mesa.component').then(m => m.PedidoMesaComponent),
   },
-
-
 
   { path: '**', redirectTo: 'produtos' },
 ];

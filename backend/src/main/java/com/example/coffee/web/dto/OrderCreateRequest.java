@@ -1,5 +1,7 @@
 package com.example.coffee.web.dto;
+
 import java.util.List;
+
 public class OrderCreateRequest {
   public String creationType; // BALCAO|MESA
   public Integer tableNumber;

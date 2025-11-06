@@ -18,13 +18,15 @@ import { catchError, forkJoin, map, of } from 'rxjs';
     <section *ngIf="error" class="msg err">Falha ao carregar mesas.</section>
 
     <div *ngIf="!loading && !error" class="grid">
-      <a class="card" *ngFor="let m of mesas" [routerLink]="['/cardapio', m.id]">
-        <div class="title">{{ m.nome }}</div>
-        <div class="sub" [class.ocupada]="m.status==='OCUPADA'">{{ m.status ?? 'LIVRE' }}</div>
+      <div class="card" *ngFor="let m of mesas">
+        <a [routerLink]="['/cardapio', m.id]" class="card-link">
+          <div class="title">{{ m.nome }}</div>
+          <div class="sub" [class.ocupada]="m.status==='OCUPADA'">{{ m.status ?? 'LIVRE' }}</div>
+        </a>
         <div class="links">
-          <a [routerLink]="['/mesas', m.id, 'pedido']" (click)="$event.stopPropagation()">Ver pedido</a>
+          <a [routerLink]="['/mesas', m.id, 'detalhes']">Ver detalhes</a>
         </div>
-      </a>
+      </div>
     </div>
   `,
   styles: [`
@@ -32,8 +34,9 @@ import { catchError, forkJoin, map, of } from 'rxjs';
     .ghost{padding:6px 10px;border:0;border-radius:8px;background:#f2f2f2;cursor:pointer}
     .msg{padding:16px}.err{color:#b00020}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px}
-    .card{border:1px solid #eee;border-radius:12px;padding:12px;text-decoration:none;color:inherit;display:block}
-    .card:hover{background:#fafafa}
+    .card{border:1px solid #eee;border-radius:12px;padding:12px;display:block}
+    .card-link{text-decoration:none;color:inherit;display:block}
+    .card-link:hover{background:#fafafa}
     .title{font-weight:600}
     .sub{opacity:.8;margin-top:6px}
     .sub.ocupada{color:#c62828}
@@ -73,11 +76,11 @@ export class MesasComponent implements OnInit {
   private async carregarStatus() {
     if (!this.mesas.length) return;
     const calls = this.mesas.map(m =>
-      this.pedidos.buscarPorMesa(m.id).pipe(
-        map(order => {
-          const st = String(order?.status ?? '').toUpperCase();
-          const open = !!order && !(order?.paid) && !['PAGO','FECHADO','CANCELADO','PAID','CLOSED','CANCELED'].includes(st);
-          return { id: m.id, ocupado: open };
+      this.api.getDetalhesMesa(m.id).pipe(
+        map(detalhes => {
+          // Mesa está ocupada se tiver produtos (total > 0)
+          const ocupado = detalhes.produtos.length > 0;
+          return { id: m.id, ocupado };
         }),
         catchError(() => of({ id: m.id, ocupado: false }))
       )

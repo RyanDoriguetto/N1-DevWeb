@@ -13,14 +13,15 @@ import com.example.coffee.repo.UserRepository;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
-  @Autowired private UserRepository userRepo;
+  @Autowired
+  private UserRepository userRepo;
 
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     var u = userRepo.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("not found"));
     var authorities = u.getRoles().stream()
-      .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getName().name()))
-      .collect(Collectors.<GrantedAuthority>toList());
+        .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getName().name()))
+        .collect(Collectors.<GrantedAuthority>toList());
     return new User(u.getEmail(), u.getPasswordHash(), u.isActive(), true, true, true, authorities);
   }
 }

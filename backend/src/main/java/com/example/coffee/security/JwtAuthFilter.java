@@ -26,11 +26,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   @Autowired
   private MyUserDetailsService myUserDetailsService;
 
+  // CONSTRUTOR COM DEBUG - ADICIONE ESTAS LINHAS
+  public JwtAuthFilter() {
+    System.out.println("=== JWT AUTH FILTER CONSTRUÍDO ===");
+  }
+
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    String uri = request.getRequestURI();
-    // não filtra endpoints públicos de autenticação
-    return uri.startsWith("/api/auth");
+    // return uri.startsWith("/api/auth"); // COMENTE
+    return false; // DEIXE ASSIM PARA TESTAR
   }
 
   @Override

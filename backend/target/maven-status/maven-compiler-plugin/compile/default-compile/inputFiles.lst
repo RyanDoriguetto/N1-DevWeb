@@ -21,13 +21,17 @@ E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\security\jwt
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\security\JwtAuthFilter.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\security\MyUserDetailsService.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\service\AuthService.java
+E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\service\MesaService.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\AuthController.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\DebugController.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\LoginRequest.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\LoginResponse.java
+E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\MesaDetalhesDTO.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\OrderCreateRequest.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\OrderItemDTO.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\ProductDTO.java
+E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\dto\ProdutoMesaDTO.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\EmployeeController.java
+E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\MesaController.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\OrderController.java
 E:\Projetos\N1-DevWeb-main\backend\src\main\java\com\example\coffee\web\ProductController.java

@@ -8,10 +8,12 @@ import com.example.coffee.repo.UserRepository;
 
 @Service
 public class AuthService {
-  @Autowired private UserRepository userRepo;
-  @Autowired private PasswordEncoder encoder;
+  @Autowired
+  private UserRepository userRepo;
+  @Autowired
+  private PasswordEncoder encoder;
 
-  public User validateUser(String email, String rawPassword){
+  public User validateUser(String email, String rawPassword) {
     var u = userRepo.findByEmail(email).orElse(null);
     if (u != null && encoder.matches(rawPassword, u.getPasswordHash()) && u.isActive()) {
       return u;

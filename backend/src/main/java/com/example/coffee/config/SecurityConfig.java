@@ -33,6 +33,12 @@ public class SecurityConfig {
 
         .requestMatchers("/api/auth/**").permitAll()
 
+        // ↓ NOVAS ROTAS DA MESA ↓
+        .requestMatchers(HttpMethod.GET, "/api/mesas/**")
+          .hasAnyRole("ADMIN","CAIXA","ATENDENTE")
+        .requestMatchers(HttpMethod.POST, "/api/mesas/**")
+          .hasAnyRole("ADMIN","CAIXA","ATENDENTE")
+
         .requestMatchers(HttpMethod.GET, "/api/produtos/**")
           .hasAnyRole("ADMIN","CAIXA","ATENDENTE")
         .requestMatchers(HttpMethod.POST, "/api/produtos/**").hasRole("ADMIN")

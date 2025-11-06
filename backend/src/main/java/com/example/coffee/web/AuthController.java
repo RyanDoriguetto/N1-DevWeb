@@ -10,17 +10,23 @@ import com.example.coffee.service.AuthService;
 import com.example.coffee.web.dto.*;
 import com.example.coffee.repo.UserRepository;
 
-@RestController @RequestMapping("/api/auth")
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
-  @Autowired private AuthService authService;
-  @Autowired private JwtService jwtService;
-  @Autowired private UserRepository userRepo;
-  @Autowired private PasswordEncoder encoder;
+  @Autowired
+  private AuthService authService;
+  @Autowired
+  private JwtService jwtService;
+  @Autowired
+  private UserRepository userRepo;
+  @Autowired
+  private PasswordEncoder encoder;
 
   @PostMapping("/login")
-  public ResponseEntity<?> login(@RequestBody @Validated LoginRequest req){
+  public ResponseEntity<?> login(@RequestBody @Validated LoginRequest req) {
     var u = authService.validateUser(req.email, req.password);
-    if (u == null) return ResponseEntity.status(401).build();
+    if (u == null)
+      return ResponseEntity.status(401).build();
     String token = jwtService.generateToken(u.getEmail(), u.getType().name());
     return ResponseEntity.ok(new LoginResponse(token, u.getType().name()));
   }

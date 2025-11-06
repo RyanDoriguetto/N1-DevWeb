@@ -1,5 +1,7 @@
 com\example\coffee\config\CorsConfig.class
 com\example\coffee\web\dto\ProductDTO.class
+com\example\coffee\web\dto\ProdutoMesaDTO.class
+com\example\coffee\service\MesaService.class
 com\example\coffee\config\SecurityConfig.class
 com\example\coffee\repo\OrderRepository.class
 com\example\coffee\domain\enums\OrderStatus.class
@@ -10,6 +12,7 @@ com\example\coffee\domain\entities\Product.class
 com\example\coffee\web\DebugController.class
 com\example\coffee\security\JwtAuthFilter.class
 com\example\coffee\repo\OrderItemRepository.class
+com\example\coffee\web\dto\MesaDetalhesDTO.class
 com\example\coffee\repo\ProductRepository.class
 com\example\coffee\security\jwt\JwtService.class
 com\example\coffee\web\EmployeeController.class
@@ -25,6 +28,7 @@ com\example\coffee\web\dto\OrderItemDTO.class
 com\example\coffee\repo\RoleRepository.class
 com\example\coffee\web\AuthController.class
 com\example\coffee\repo\UserRepository.class
+com\example\coffee\web\MesaController.class
 com\example\coffee\web\dto\LoginRequest.class
 com\example\coffee\domain\entities\Role.class
 com\example\coffee\infra\NotifierClient.class

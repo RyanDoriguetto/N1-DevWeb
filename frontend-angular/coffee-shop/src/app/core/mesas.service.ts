@@ -7,14 +7,28 @@ import { catchError, map } from 'rxjs/operators';
 export interface Mesa {
   id: number;
   nome: string;
-  status?: 'LIVRE'|'OCUPADA'|'FECHADA';
+  status?: 'LIVRE' | 'OCUPADA' | 'FECHADA';
+}
+
+// ADICIONE ESTAS INTERFACES PARA OS NOVOS DADOS
+export interface ProdutoMesa {
+  nomeProduto: string;
+  quantidade: number;
+  precoUnitario: number;
+  subtotal: number;
+}
+
+export interface MesaDetalhes {
+  numeroMesa: number;
+  produtos: ProdutoMesa[];
+  total: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class MesasService {
   private base = `${environment.API_URL}/api/mesas`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   listar(): Observable<Mesa[]> {
     return this.http.get<any[]>(this.base).pipe(
@@ -30,5 +44,15 @@ export class MesasService {
         status: 'LIVRE' as const
       }))))
     );
+  }
+
+  // ADICIONE ESTES DOIS NOVOS MÉTODOS:
+
+  getDetalhesMesa(numeroMesa: number): Observable<MesaDetalhes> {
+    return this.http.get<MesaDetalhes>(`${this.base}/${numeroMesa}/detalhes`);
+  }
+
+  encerrarMesa(numeroMesa: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/${numeroMesa}/encerrar`, {});
   }
 }

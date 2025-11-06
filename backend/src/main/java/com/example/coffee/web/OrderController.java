@@ -5,26 +5,39 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.util.List;
-import com.example.coffee.repo.*;
 import com.example.coffee.domain.entities.*;
 import com.example.coffee.domain.enums.*;
 import com.example.coffee.web.dto.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.client.RestTemplate;
+import com.example.coffee.repo.OrderRepository;
+import com.example.coffee.repo.OrderItemRepository;
+import com.example.coffee.repo.ProductRepository;
+import com.example.coffee.repo.UserRepository;
 
-@RestController @RequestMapping("/api/pedidos")
+@RestController
+@RequestMapping("/api/pedidos")
 public class OrderController {
-  @Autowired private OrderRepository orderRepo;
-  @Autowired private OrderItemRepository itemRepo;
-  @Autowired private ProductRepository productRepo;
-  @Autowired private UserRepository userRepo;
-  @Value("${app.notifier.url}") private String notifierUrl;
+  @Autowired
+  private OrderRepository orderRepo;
+  @Autowired
+  private OrderItemRepository itemRepo;
+  @Autowired
+  private ProductRepository productRepo;
+  @Autowired
+  private UserRepository userRepo;
+  @Value("${app.notifier.url}")
+  private String notifierUrl;
 
-  @GetMapping public List<Order> list(){ return orderRepo.findAll(); }
+  @GetMapping
+  public List<Order> list() {
+    return orderRepo.findAll();
+  }
 
-  @PostMapping public ResponseEntity<Order> create(@AuthenticationPrincipal UserDetails principal,
-                      @RequestBody OrderCreateRequest req){
+  @PostMapping
+  public ResponseEntity<Order> create(@AuthenticationPrincipal UserDetails principal,
+      @RequestBody OrderCreateRequest req) {
     var user = userRepo.findByEmail(principal.getUsername()).orElseThrow();
     var order = new Order();
     order.setCreatedBy(user);
@@ -55,23 +68,28 @@ public class OrderController {
   }
 
   @PutMapping("/{id}/status")
-  public ResponseEntity<Order> updateStatus(@PathVariable Long id, @RequestParam OrderStatus status){
+  public ResponseEntity<Order> updateStatus(@PathVariable Long id, @RequestParam OrderStatus status) {
     var order = orderRepo.findById(id).orElse(null);
-    if (order == null) return ResponseEntity.notFound().build();
+    if (order == null)
+      return ResponseEntity.notFound().build();
     var old = order.getStatus();
     order.setStatus(status);
     orderRepo.save(order);
-    try{
+    try {
       new RestTemplate().postForEntity(notifierUrl + "/events/order-status",
-        java.util.Map.of("orderId", order.getId(), "oldStatus", old.name(), "newStatus", status.name()), String.class);
-    } catch(Exception e){ /* ignore dev */ }
+          java.util.Map.of("orderId", order.getId(), "oldStatus", old.name(), "newStatus", status.name()),
+          String.class);
+    } catch (Exception e) {
+      /* ignore dev */ }
     return ResponseEntity.ok(order);
   }
 
   @PutMapping("/{id}/pagamento")
-  public ResponseEntity<Order> updatePayment(@PathVariable Long id, @RequestParam PaymentMethod method, @RequestParam boolean paid){
+  public ResponseEntity<Order> updatePayment(@PathVariable Long id, @RequestParam PaymentMethod method,
+      @RequestParam boolean paid) {
     var order = orderRepo.findById(id).orElse(null);
-    if (order == null) return ResponseEntity.notFound().build();
+    if (order == null)
+      return ResponseEntity.notFound().build();
     order.setPaymentMethod(method);
     order.setPaid(paid);
     orderRepo.save(order);

@@ -1,6 +1,8 @@
 package com.example.coffee.web.dto;
+
 import java.math.BigDecimal;
 import com.example.coffee.domain.enums.ProductCategory;
+
 public class ProductDTO {
   public Long id;
   public String name;

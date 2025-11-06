@@ -38,7 +38,14 @@ ng serve
 > Acessar **http://localhost:4200**.
 
 ### 5) Login de teste
-Use o usuário criado no seed do banco (ex.: `admin@coffee.local` com senha `123` se você ajustou — senão crie via SQL ou endpoint de auth).
+Email: admin@coffee.local
+Senha: 123456
+
+Email: caixa@coffee.local  
+Senha: 123456
+
+Email: aten@coffee.local
+Senha: 123456
 
 ### 6) Rede / firewall (se for apresentar)
 - Para outra máquina na **mesma rede** acessar:
