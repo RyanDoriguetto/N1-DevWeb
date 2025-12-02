@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  selector: 'app-sidebar', // ← ADICIONE ESTA LINHA
+  selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
@@ -14,17 +14,23 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
       <ul class="nav-links">
         <li>
-          <a routerLink="/mesas" routerLinkActive="active">
+          <a routerLink="/mesas"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
             🪑 Mesas
           </a>
         </li>
         <li>
-          <a routerLink="/produtos" routerLinkActive="active">
+          <a routerLink="/produtos"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
             📦 Produtos
           </a>
         </li>
         <li>
-          <a routerLink="/cardapio/1" routerLinkActive="active">
+          <a routerLink="/cardapio/1"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
             📋 Cardápio
           </a>
         </li>

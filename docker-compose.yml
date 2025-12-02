@@ -1,19 +1,47 @@
-version: "3.9"
 services:
   db:
     image: postgres:15
+    container_name: db_coffeeshop
     restart: unless-stopped
     environment:
       POSTGRES_DB: coffeeshop
       POSTGRES_USER: coffee
       POSTGRES_PASSWORD: coffee123
-    ports: ["5432:5432"]
-    volumes: [dbdata:/var/lib/postgresql/data]
-  pgadmin:
-    image: dpage/pgadmin4:8
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  backend:
+    image: maven:3.9-eclipse-temurin-17
+    container_name: backend_coffeeshop
+    working_dir: /app
+    volumes:
+      # monta só a pasta backend dentro do container
+      - ./backend:/app
+    command: mvn spring-boot:run
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports: ["5050:80"]
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/coffeeshop
+      SPRING_DATASOURCE_USERNAME: coffee
+      SPRING_DATASOURCE_PASSWORD: coffee123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend-angular/coffee-shop
+    container_name: frontend_coffeeshop
+    working_dir: /app
+    ports:
+      - "4200:4200"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: npm run start -- --host 0.0.0.0 --port 4200
+    depends_on:
+      - backend
+
 volumes:
   dbdata:

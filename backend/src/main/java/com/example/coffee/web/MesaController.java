@@ -1,23 +1,33 @@
+// src/main/java/com/example/coffee/web/MesaController.java
 package com.example.coffee.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import com.example.coffee.service.MesaService;
 import com.example.coffee.web.dto.MesaDetalhesDTO;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/mesas")
 public class MesaController {
 
-    @Autowired
-    private MesaService mesaService;
+    private final MesaService mesaService;
+
+    public MesaController(MesaService mesaService) {
+        this.mesaService = mesaService;
+    }
+
+    // LISTA APENAS OS NÚMEROS DAS MESAS ATIVAS (ex.: [1,2,3])
+    @GetMapping
+    public ResponseEntity<List<Integer>> listarMesas() {
+        return ResponseEntity.ok(mesaService.listarMesasNumeros());
+    }
 
     @GetMapping("/{numeroMesa}/detalhes")
     public ResponseEntity<MesaDetalhesDTO> getDetalhesMesa(@PathVariable Integer numeroMesa) {
         try {
-            MesaDetalhesDTO detalhes = mesaService.buscarDetalhesMesa(numeroMesa);
-            return ResponseEntity.ok(detalhes);
+            return ResponseEntity.ok(mesaService.buscarDetalhesMesa(numeroMesa));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

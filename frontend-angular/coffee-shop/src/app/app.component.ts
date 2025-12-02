@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './shared/sidebar.component';
 
 @Component({
@@ -9,41 +9,37 @@ import { SidebarComponent } from './shared/sidebar.component';
   imports: [CommonModule, RouterLink, RouterOutlet, SidebarComponent],
   template: `
     <div class="app-container">
-      @if (isAuthenticated()) {
-        <app-sidebar></app-sidebar>
-      }
-      <main class="main-content" [class.with-sidebar]="isAuthenticated()">
-        @if (!isAuthenticated()) {
-          <nav class="nav">
-            <a routerLink="/login">Login</a>
-          </nav>
-        }
+      <app-sidebar *ngIf="showSidebar"></app-sidebar>
+      <main class="main-content" [class.with-sidebar]="showSidebar">
         <router-outlet></router-outlet>
       </main>
     </div>
   `,
   styles: [`
-    .app-container {
-      display: flex;
-      min-height: 100vh;
-    }
+  .app-container {
+    display: flex;
+    min-height: 100vh;
+  }
 
-    .main-content {
-      flex: 1;
-      padding: 0;
-    }
+  .main-content {
+    flex: 1;
+    padding: 0;
+    /* quando a sidebar não estiver visível */
+    margin-left: 0;
+  }
 
-    .main-content.with-sidebar {
-      margin-left: 250px;
-      padding: 20px;
-    }
-
-    .nav{display:flex;gap:16px;align-items:center;padding:12px 16px;border-bottom:1px solid #eee}
-    .nav a{text-decoration:none;color:#111}
-  `]
+  /* aplica espaço quando a sidebar estiver visível */
+  .main-content.with-sidebar {
+    margin-left: 250px; /* mesma largura da sidebar */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+`]
 })
 export class AppComponent {
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+  constructor(private router: Router) {}
+
+  get showSidebar(): boolean {
+    return !this.router.url.startsWith('/login'); // esconde só no /login
   }
 }

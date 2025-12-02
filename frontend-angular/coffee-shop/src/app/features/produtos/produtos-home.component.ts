@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { ProdutosService, Produto } from '../../core/produtos.service';
-import { clearAuth } from '../../shared/utils';
 
 @Component({
   standalone: true,
@@ -12,8 +11,6 @@ import { clearAuth } from '../../shared/utils';
       <h2>Produtos</h2>
       <div class="actions">
         <a routerLink="/produtos/novo" class="btn">Novo Produto</a>
-        <a routerLink="/mesas" class="btn">Mesas</a>
-        <button (click)="logout()">Sair</button>
       </div>
     </header>
 
@@ -42,7 +39,6 @@ import { clearAuth } from '../../shared/utils';
     .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #eee}
     .actions{display:flex;gap:8px;align-items:center}
     .btn{padding:8px 12px;border-radius:10px;background:#0a7;color:#fff;text-decoration:none}
-    .topbar button{padding:8px 12px;border:0;border-radius:10px;background:#111;color:#fff;cursor:pointer}
     .msg{padding:16px}.err{color:#b00020}
     .lista{list-style:none;margin:0;padding:16px;display:grid;gap:12px}
     li{border:1px solid #eee;border-radius:12px;padding:12px}
@@ -60,7 +56,7 @@ export class ProdutosHomeComponent implements OnInit {
   error = false;
   removendoId?: number;
 
-  constructor(private api: ProdutosService, private router: Router) { }
+  constructor(private api: ProdutosService) {}
 
   ngOnInit(): void { this.reload(); }
 
@@ -84,10 +80,5 @@ export class ProdutosHomeComponent implements OnInit {
       next: () => { this.removendoId = undefined; this.reload(); },
       error: () => { this.removendoId = undefined; this.error = true; }
     });
-  }
-
-  logout() {
-    clearAuth();
-    this.router.navigateByUrl('/login');
   }
 }
