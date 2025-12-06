@@ -3,6 +3,7 @@ com/example/coffee/config/SecurityConfig.class
 com/example/coffee/CoffeeApplication.class
 com/example/coffee/security/JwtAuthFilter.class
 com/example/coffee/repo/UserRepository.class
+com/example/coffee/web/DashboardController$1.class
 com/example/coffee/domain/entities/User.class
 com/example/coffee/web/dto/LoginRequest.class
 com/example/coffee/security/MyUserDetailsService.class

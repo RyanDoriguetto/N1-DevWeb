@@ -13,25 +13,46 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       </div>
 
       <ul class="nav-links">
+
+
         <li>
-          <a routerLink="/mesas"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{ exact: true }">
+          <a
+            routerLink="/mesas"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
             🪑 Mesas
           </a>
         </li>
+
         <li>
-          <a routerLink="/produtos"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{ exact: true }">
+          <a
+            routerLink="/produtos"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
             📦 Produtos
           </a>
         </li>
+
         <li>
-          <a routerLink="/cardapio/1"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{ exact: true }">
+          <a
+            routerLink="/cardapio/1"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
             📋 Cardápio
+          </a>
+        </li>
+
+         <!-- NOVO: link para o Dashboard / Estatísticas -->
+        <li>
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            📊 Dashboard
           </a>
         </li>
       </ul>
@@ -58,13 +79,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
     .logo {
       padding: 20px;
-      border-bottom: 1px solid #34495e;
-      text-align: center;
+      border-bottom: 1px solid #1c538aff;
     }
 
     .logo h2 {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 20px;
     }
 
     .nav-links {
@@ -80,22 +100,20 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
     .nav-links a {
       display: block;
-      padding: 15px 20px;
+      padding: 12px 20px;
       color: #ecf0f1;
       text-decoration: none;
-      transition: all 0.3s;
-      border-left: 4px solid transparent;
+      font-size: 15px;
     }
 
     .nav-links a:hover {
       background: #34495e;
-      color: white;
     }
 
     .nav-links a.active {
-      background: #3498db;
-      border-left-color: #2980b9;
-      color: white;
+      background: #1abc9c;
+      color: #2c3e50;
+      font-weight: bold;
     }
 
     .user-section {
@@ -105,10 +123,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
     .logout-btn {
       width: 100%;
-      padding: 10px;
+      padding: 10px 0;
+      border: none;
       background: #e74c3c;
       color: white;
-      border: none;
+      font-size: 14px;
       border-radius: 5px;
       cursor: pointer;
     }

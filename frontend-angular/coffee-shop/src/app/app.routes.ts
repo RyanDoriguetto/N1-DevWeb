@@ -69,5 +69,14 @@ export const routes: Routes = [
       import('./features/pedido/pedido-mesa.component').then(m => m.PedidoMesaComponent),
   },
 
+    {
+    path: 'dashboard',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'CAIXA'] }, // se quiser inclui ATENDENTE aqui também
+    loadComponent: () =>
+      import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+  },
+
+
   { path: '**', redirectTo: 'produtos' },
 ];

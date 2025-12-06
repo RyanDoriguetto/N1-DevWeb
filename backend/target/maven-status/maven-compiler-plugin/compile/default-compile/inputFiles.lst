@@ -23,6 +23,7 @@
 /app/src/main/java/com/example/coffee/service/AuthService.java
 /app/src/main/java/com/example/coffee/service/MesaService.java
 /app/src/main/java/com/example/coffee/web/AuthController.java
+/app/src/main/java/com/example/coffee/web/DashboardController.java
 /app/src/main/java/com/example/coffee/web/DebugController.java
 /app/src/main/java/com/example/coffee/web/EmployeeController.java
 /app/src/main/java/com/example/coffee/web/MesaController.java
@@ -33,5 +34,11 @@
 /app/src/main/java/com/example/coffee/web/dto/MesaDetalhesDTO.java
 /app/src/main/java/com/example/coffee/web/dto/OrderCreateRequest.java
 /app/src/main/java/com/example/coffee/web/dto/OrderItemDTO.java
+/app/src/main/java/com/example/coffee/web/dto/OrderStatsDTO.java
+/app/src/main/java/com/example/coffee/web/dto/OrderStatusResumoDTO.java
+/app/src/main/java/com/example/coffee/web/dto/PaymentResumoDTO.java
 /app/src/main/java/com/example/coffee/web/dto/ProductDTO.java
 /app/src/main/java/com/example/coffee/web/dto/ProdutoMesaDTO.java
+/app/src/main/java/com/example/coffee/web/dto/RecentOrderDTO.java
+/app/src/main/java/com/example/coffee/web/dto/SalesByDayDTO.java
+/app/src/main/java/com/example/coffee/web/dto/TopProductDTO.java
