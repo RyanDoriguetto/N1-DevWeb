@@ -35,16 +35,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           </a>
         </li>
 
-        <li>
-          <a
-            routerLink="/cardapio/1"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
-          >
-            📋 Cardápio
-          </a>
-        </li>
-
          <!-- NOVO: link para o Dashboard / Estatísticas -->
         <li>
           <a

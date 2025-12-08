@@ -3,6 +3,7 @@ package com.example.coffee.web;
 import com.example.coffee.domain.entities.Order;
 import com.example.coffee.domain.entities.OrderItem;
 import com.example.coffee.domain.enums.OrderStatus;
+import com.example.coffee.domain.enums.PaymentMethod;
 import com.example.coffee.repo.OrderItemRepository;
 import com.example.coffee.repo.OrderRepository;
 import com.example.coffee.repo.ProductRepository;
@@ -11,19 +12,23 @@ import com.example.coffee.web.dto.SalesByDayDTO;
 import com.example.coffee.web.dto.TopProductDTO;
 import com.example.coffee.web.dto.RecentOrderDTO;
 import com.example.coffee.web.dto.PaymentResumoDTO;
-import com.example.coffee.domain.enums.PaymentMethod;
+import com.example.coffee.web.dto.OrderStatusResumoDTO;
+import com.example.coffee.web.dto.SalesByHourDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.example.coffee.web.dto.OrderStatusResumoDTO;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+/**
+ * Endpoints do dashboard (resumo, vendas, top produtos, etc).
+ */
 @RestController
 @RequestMapping("/api/dashboard")
 @CrossOrigin(origins = "*")
@@ -38,13 +43,57 @@ public class DashboardController {
     @Autowired
     private OrderItemRepository orderItemRepo;
 
+    /**
+     * Helper para calcular intervalo de datas baseado em "dias".
+     *
+     * Ex:
+     * - dias = 1 -> hoje 00:00 até amanhã 00:00
+     * - dias = 7 -> 6 dias atrás 00:00 até amanhã 00:00
+     */
+    private static class IntervaloDatas {
+        Instant inicio;
+        Instant fim;
+
+        IntervaloDatas(Instant inicio, Instant fim) {
+            this.inicio = inicio;
+            this.fim = fim;
+        }
+    }
+
+    private IntervaloDatas calcularIntervaloDias(int dias) {
+        if (dias < 1) {
+            dias = 1;
+        }
+
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDate hoje = LocalDate.now(zone);
+        LocalDate dataInicio = hoje.minusDays(dias - 1L);
+
+        Instant inicio = dataInicio.atStartOfDay(zone).toInstant();
+        Instant fim = hoje.plusDays(1).atStartOfDay(zone).toInstant(); // início de amanhã
+
+        return new IntervaloDatas(inicio, fim);
+    }
+
     // --------------------------------------------------------------------
     // RESUMO GERAL
+    // (já preparado pra receber ?dias=N no futuro, mas funciona sem parâmetro)
     // --------------------------------------------------------------------
     @GetMapping("/resumo")
-    public OrderStatsDTO getResumoGeral() {
+    public OrderStatsDTO getResumoGeral(
+            @RequestParam(name = "dias", required = false) Integer dias) {
 
-        List<Order> orders = orderRepo.findAll();
+        List<Order> orders;
+
+        if (dias == null || dias <= 0) {
+            // comportamento atual: todos os pedidos
+            orders = orderRepo.findAll();
+        } else {
+            // preparado para /resumo?dias=7, se quiser usar depois
+            IntervaloDatas intervalo = calcularIntervaloDias(dias);
+            orders = orderRepo.findByCreatedAtBetween(intervalo.inicio, intervalo.fim);
+        }
+
         long totalOrders = orders.size();
 
         BigDecimal totalRevenue = orders.stream()
@@ -85,14 +134,11 @@ public class DashboardController {
     @GetMapping("/vendas-por-dia")
     public List<SalesByDayDTO> getVendasPorDia(
             @RequestParam(defaultValue = "7") int dias) {
-        if (dias < 1) {
-            dias = 1;
-        }
 
-        Instant agora = Instant.now();
-        Instant inicio = agora.minus(dias - 1L, ChronoUnit.DAYS);
+        IntervaloDatas intervalo = calcularIntervaloDias(dias);
 
-        List<Order> orders = orderRepo.findByCreatedAtBetween(inicio, agora);
+        List<Order> orders = orderRepo.findByCreatedAtBetween(
+                intervalo.inicio, intervalo.fim);
 
         ZoneId zone = ZoneId.systemDefault();
         Map<LocalDate, BigDecimal> mapa = new TreeMap<>();
@@ -125,14 +171,11 @@ public class DashboardController {
     @GetMapping("/top-produtos")
     public List<TopProductDTO> getTopProdutos(
             @RequestParam(defaultValue = "7") int dias) {
-        if (dias < 1) {
-            dias = 1;
-        }
 
-        Instant agora = Instant.now();
-        Instant inicio = agora.minus(dias - 1L, ChronoUnit.DAYS);
+        IntervaloDatas intervalo = calcularIntervaloDias(dias);
 
-        List<OrderItem> itens = orderItemRepo.findByOrderCreatedAtBetween(inicio, agora);
+        List<OrderItem> itens = orderItemRepo.findByOrderCreatedAtBetween(
+                intervalo.inicio, intervalo.fim);
 
         Map<String, Long> mapa = new HashMap<>();
 
@@ -172,6 +215,7 @@ public class DashboardController {
     @GetMapping("/ultimos-pedidos")
     public List<RecentOrderDTO> getUltimosPedidos(
             @RequestParam(defaultValue = "5") int limit) {
+
         if (limit < 1) {
             limit = 1;
         }
@@ -203,12 +247,22 @@ public class DashboardController {
     }
 
     // --------------------------------------------------------------------
-    // RESUMO POR STATUS (funil de pedidos)
+    // RESUMO POR STATUS (funil de pedidos) - geral (sem filtro de dias)
     // --------------------------------------------------------------------
     @GetMapping("/status-pedidos")
-    public OrderStatusResumoDTO getStatusPedidos() {
+    public OrderStatusResumoDTO getStatusPedidos(
+            @RequestParam(name = "dias", required = false) Integer dias) {
 
-        java.util.List<Order> orders = orderRepo.findAll();
+        List<Order> orders;
+
+        if (dias == null || dias <= 0) {
+            // comportamento antigo: todos os pedidos
+            orders = orderRepo.findAll();
+        } else {
+            // usa o mesmo helper de intervalo que já criamos
+            IntervaloDatas intervalo = calcularIntervaloDias(dias);
+            orders = orderRepo.findByCreatedAtBetween(intervalo.inicio, intervalo.fim);
+        }
 
         long recebido = orders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.RECEBIDO)
@@ -238,28 +292,31 @@ public class DashboardController {
                 cancelado);
     }
 
-        // --------------------------------------------------------------------
-    // PAGAMENTOS POR MÉTODO
+    // --------------------------------------------------------------------
+    // PAGAMENTOS POR MÉTODO - COM INTERVALO DE DIAS
     // --------------------------------------------------------------------
     @GetMapping("/pagamentos-por-metodo")
-    public PaymentResumoDTO getPagamentosPorMetodo() {
+    public PaymentResumoDTO getPagamentosPorMetodo(
+            @RequestParam(defaultValue = "7") int dias) {
 
-        java.util.List<Order> orders = orderRepo.findAll();
+        IntervaloDatas intervalo = calcularIntervaloDias(dias);
+
+        List<Order> orders = orderRepo.findByCreatedAtBetween(
+                intervalo.inicio, intervalo.fim);
 
         long pendente = 0L;
         long dinheiro = 0L;
         long cartao = 0L;
         long pix = 0L;
 
-        java.math.BigDecimal totalDinheiro = java.math.BigDecimal.ZERO;
-        java.math.BigDecimal totalCartao = java.math.BigDecimal.ZERO;
-        java.math.BigDecimal totalPix = java.math.BigDecimal.ZERO;
+        BigDecimal totalDinheiro = BigDecimal.ZERO;
+        BigDecimal totalCartao = BigDecimal.ZERO;
+        BigDecimal totalPix = BigDecimal.ZERO;
 
         for (Order o : orders) {
 
             PaymentMethod pm = o.getPaymentMethod();
-            java.math.BigDecimal total =
-                    o.getTotal() != null ? o.getTotal() : java.math.BigDecimal.ZERO;
+            BigDecimal total = o.getTotal() != null ? o.getTotal() : BigDecimal.ZERO;
 
             // se não tem método definido, considera como pendente
             if (pm == null || pm == PaymentMethod.PENDENTE) {
@@ -286,8 +343,7 @@ public class DashboardController {
             }
         }
 
-        java.math.BigDecimal totalGeral =
-                totalDinheiro.add(totalCartao).add(totalPix);
+        BigDecimal totalGeral = totalDinheiro.add(totalCartao).add(totalPix);
 
         return new PaymentResumoDTO(
                 pendente,
@@ -297,8 +353,48 @@ public class DashboardController {
                 totalDinheiro,
                 totalCartao,
                 totalPix,
-                totalGeral
-        );
+                totalGeral);
+    }
+
+    // --------------------------------------------------------------------
+    // VENDAS POR HORA (somente HOJE, apenas pedidos ENTREGUE)
+    // Usado quando o usuário escolhe "1 dia" no dashboard
+    // --------------------------------------------------------------------
+    @GetMapping("/vendas-por-hora")
+    public List<SalesByHourDTO> getVendasPorHora() {
+
+        // usa o helper para pegar o intervalo de HOJE
+        IntervaloDatas intervalo = calcularIntervaloDias(1);
+
+        List<Order> orders = orderRepo.findByCreatedAtBetween(
+                intervalo.inicio, intervalo.fim);
+
+        ZoneId zone = ZoneId.systemDefault();
+
+        BigDecimal[] totais = new BigDecimal[24];
+        for (int i = 0; i < 24; i++) {
+            totais[i] = BigDecimal.ZERO;
+        }
+
+        for (Order o : orders) {
+            if (o.getStatus() != OrderStatus.ENTREGUE) {
+                continue;
+            }
+
+            LocalDateTime ldt = LocalDateTime.ofInstant(o.getCreatedAt(), zone);
+            int hora = ldt.getHour(); // 0..23
+
+            BigDecimal total = o.getTotal() != null ? o.getTotal() : BigDecimal.ZERO;
+
+            totais[hora] = totais[hora].add(total);
+        }
+
+        List<SalesByHourDTO> resultado = new ArrayList<>();
+        for (int h = 0; h < 24; h++) {
+            resultado.add(new SalesByHourDTO(h, totais[h]));
+        }
+
+        return resultado;
     }
 
 }

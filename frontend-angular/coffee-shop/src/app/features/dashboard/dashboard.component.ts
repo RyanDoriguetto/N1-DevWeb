@@ -4,6 +4,7 @@ import { DashboardService } from '../../core/dashboard.service';
 import {
   DashboardResumo,
   DashboardVendaDia,
+  DashboardVendaHora,
   DashboardTopProduto,
   DashboardUltimoPedido,
   DashboardStatusResumo,
@@ -27,6 +28,42 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
         </div>
 
         <div class="page-actions">
+          <div class="period-filters">
+            <span class="period-label">Período geral:</span>
+
+            <button
+              class="badge-pill"
+              [class.badge-pill-active]="periodoDashboard === 1"
+              (click)="alterarPeriodoDashboard(1)"
+            >
+              1 dia
+            </button>
+
+            <button
+              class="badge-pill"
+              [class.badge-pill-active]="periodoDashboard === 7"
+              (click)="alterarPeriodoDashboard(7)"
+            >
+              7 dias
+            </button>
+
+            <button
+              class="badge-pill"
+              [class.badge-pill-active]="periodoDashboard === 15"
+              (click)="alterarPeriodoDashboard(15)"
+            >
+              15 dias
+            </button>
+
+            <button
+              class="badge-pill"
+              [class.badge-pill-active]="periodoDashboard === 30"
+              (click)="alterarPeriodoDashboard(30)"
+            >
+              30 dias
+            </button>
+          </div>
+
           <button
             class="btn btn-outline"
             (click)="reload()"
@@ -244,6 +281,16 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
             </div>
 
             <div class="filters">
+              <span class="period-label">Período:</span>
+
+              <button
+                class="badge-pill"
+                [class.badge-pill-active]="diasSelecionadosVendas === 1"
+                (click)="carregarVendas(1)"
+              >
+                1 dia
+              </button>
+
               <button
                 class="badge-pill"
                 [class.badge-pill-active]="diasSelecionadosVendas === 7"
@@ -251,6 +298,15 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
               >
                 7 dias
               </button>
+
+              <button
+                class="badge-pill"
+                [class.badge-pill-active]="diasSelecionadosVendas === 15"
+                (click)="carregarVendas(15)"
+              >
+                15 dias
+              </button>
+
               <button
                 class="badge-pill"
                 [class.badge-pill-active]="diasSelecionadosVendas === 30"
@@ -314,6 +370,16 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
             </div>
 
             <div class="filters">
+              <span class="period-label">Período:</span>
+
+              <button
+                class="badge-pill"
+                [class.badge-pill-active]="diasSelecionadosTop === 1"
+                (click)="carregarTopProdutos(1)"
+              >
+                1 dia
+              </button>
+
               <button
                 class="badge-pill"
                 [class.badge-pill-active]="diasSelecionadosTop === 7"
@@ -321,6 +387,15 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
               >
                 7 dias
               </button>
+
+              <button
+                class="badge-pill"
+                [class.badge-pill-active]="diasSelecionadosTop === 15"
+                (click)="carregarTopProdutos(15)"
+              >
+                15 dias
+              </button>
+
               <button
                 class="badge-pill"
                 [class.badge-pill-active]="diasSelecionadosTop === 30"
@@ -461,6 +536,16 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
     .page-actions {
       display: flex;
       gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .period-filters {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
     }
 
     /* Botões / badges */
@@ -523,6 +608,12 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
       border-color: #2563eb;
       color: #fff;
       font-weight: 500;
+    }
+
+    .period-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-right: 4px;
     }
 
     /* Cards */
@@ -722,7 +813,7 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
     }
 
     .status-entregue {
-      border-left: 4px solid #5800bdff;
+      border-left: 4px solid #10b981;
     }
 
     .status-cancelado {
@@ -816,8 +907,11 @@ export class DashboardComponent implements OnInit {
   statusResumo?: DashboardStatusResumo;
   pagamentoResumo?: DashboardPagamentoResumo;
 
-  diasSelecionadosVendas = 7;
-  diasSelecionadosTop = 7;
+  // período geral do dashboard
+  periodoDashboard = 1;
+
+  diasSelecionadosVendas = 1;
+  diasSelecionadosTop = 1;
 
   loadingResumo = false;
   errorResumo = false;
@@ -837,7 +931,7 @@ export class DashboardComponent implements OnInit {
   loadingPagamento = false;
   errorPagamento = false;
 
-  // GRÁFICO DE LINHAS
+  // CONFIGURAÇÃO DO GRÁFICO DE LINHAS
   lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
@@ -854,11 +948,15 @@ export class DashboardComponent implements OnInit {
   lineChartOptions: ChartOptions<'line'> = {
     responsive: true,
     plugins: {
-      legend: { display: true },
+      legend: {
+        display: true,
+      },
     },
     scales: {
       x: {},
-      y: { beginAtZero: true },
+      y: {
+        beginAtZero: true,
+      },
     },
   };
 
@@ -868,20 +966,18 @@ export class DashboardComponent implements OnInit {
     datasets: [
       {
         data: [1],
-        backgroundColor: ['#e5e7eb'],        // cinza clarinho
-        hoverBackgroundColor: ['#d1d5db'],
-        borderWidth: 1,
-        borderColor: '#ffffff',
+        backgroundColor: ['#d1d5db'],
       },
     ],
   };
-
 
   paymentChartOptions: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'bottom' },
+      legend: {
+        position: 'bottom',
+      },
     },
   };
 
@@ -891,9 +987,30 @@ export class DashboardComponent implements OnInit {
     this.reload();
   }
 
+  /** Altera o período geral do dashboard e recarrega os dados */
+  alterarPeriodoDashboard(dias: number): void {
+    if (this.periodoDashboard === dias) {
+      return;
+    }
+
+    this.periodoDashboard = dias;
+
+    // sincroniza os cards de vendas e top produtos
+    this.diasSelecionadosVendas = dias;
+    this.diasSelecionadosTop = dias;
+
+    // recarrega tudo que depende do período
+    this.reloadResumo();
+    this.carregarPagamentos();
+    this.carregarVendas(this.diasSelecionadosVendas);
+    this.carregarTopProdutos(this.diasSelecionadosTop);
+    this.carregarUltimosPedidos(5);
+    // status continua geral (sem filtro de dias)
+  }
+
   reload(): void {
     this.reloadResumo();
-    this.carregarStatusPedidos();
+    this.carregarStatusPedidos(this.diasSelecionadosVendas);
     this.carregarPagamentos();
     this.carregarVendas(this.diasSelecionadosVendas);
     this.carregarTopProdutos(this.diasSelecionadosTop);
@@ -904,7 +1021,7 @@ export class DashboardComponent implements OnInit {
     this.loadingResumo = true;
     this.errorResumo = false;
 
-    this.dashboardService.getResumo().subscribe({
+    this.dashboardService.getResumo(this.periodoDashboard).subscribe({
       next: (dados) => {
         this.resumo = dados;
         this.loadingResumo = false;
@@ -916,11 +1033,11 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  carregarStatusPedidos(): void {
+  carregarStatusPedidos(dias?: number): void {
     this.loadingStatus = true;
     this.errorStatus = false;
 
-    this.dashboardService.getStatusPedidos().subscribe({
+    this.dashboardService.getStatusPedidos(dias).subscribe({
       next: (dados) => {
         this.statusResumo = dados;
         this.loadingStatus = false;
@@ -932,63 +1049,39 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+
   carregarPagamentos(): void {
     this.loadingPagamento = true;
     this.errorPagamento = false;
 
-    this.dashboardService.getPagamentosPorMetodo().subscribe({
+    this.dashboardService.getPagamentosPorMetodo(this.periodoDashboard).subscribe({
       next: (dados) => {
         this.pagamentoResumo = dados;
         this.loadingPagamento = false;
 
-        // agora conta também os pendentes
         const totalQtd = dados.pendente + dados.dinheiro + dados.cartao + dados.pix;
 
         if (totalQtd === 0) {
-          // sem dados: um círculo cinza
           this.paymentChartData = {
             labels: ['Sem dados'],
             datasets: [
               {
                 data: [1],
-                backgroundColor: ['#e5e7eb'],
-                hoverBackgroundColor: ['#d1d5db'],
-                borderWidth: 1,
-                borderColor: '#ffffff',
+                backgroundColor: ['#d1d5db'],
               },
             ],
           };
         } else {
-          // pizza com Pendente + Dinheiro + Cartão + PIX
           this.paymentChartData = {
             labels: ['Pendente', 'Dinheiro', 'Cartão', 'PIX'],
             datasets: [
               {
-                data: [
-                  dados.pendente,
-                  dados.dinheiro,
-                  dados.cartao,
-                  dados.pix,
-                ],
-                backgroundColor: [
-                  '#9ca3af', // Pendente  (cinza)
-                  '#22c55e', // Dinheiro  (verde)
-                  '#3b82f6', // Cartão    (azul)
-                  '#facc15', // PIX       (amarelo)
-                ],
-                hoverBackgroundColor: [
-                  '#6b7280',
-                  '#16a34a',
-                  '#1d4ed8',
-                  '#eab308',
-                ],
-                borderWidth: 1,
-                borderColor: '#ffffff',
+                data: [dados.pendente, dados.dinheiro, dados.cartao, dados.pix],
+                backgroundColor: ['#9ca3af', '#22c55e', '#3b82f6', '#facc15'],
               },
             ],
           };
         }
-
       },
       error: () => {
         this.errorPagamento = true;
@@ -1001,6 +1094,9 @@ export class DashboardComponent implements OnInit {
     this.diasSelecionadosVendas = dias;
     this.loadingVendas = true;
     this.errorVendas = false;
+
+    // atualiza o card de status sempre que trocar o período de vendas
+    this.carregarStatusPedidos(dias);
 
     this.dashboardService.getVendasPorDia(dias).subscribe({
       next: (lista) => {
@@ -1031,6 +1127,47 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
+
+
+
+  private atualizarGraficoPorDia(lista: DashboardVendaDia[]): void {
+    const labels = lista.map((v) =>
+      new Date(v.date).toLocaleDateString('pt-BR'),
+    );
+    const valores = lista.map((v) => v.total);
+
+    this.lineChartData = {
+      labels,
+      datasets: [
+        {
+          data: valores,
+          label: 'Faturamento (R$)',
+          fill: false,
+          tension: 0.3,
+          pointRadius: 3,
+        },
+      ],
+    };
+  }
+
+  private atualizarGraficoPorHora(lista: DashboardVendaHora[]): void {
+    const labels = lista.map((v) => `${String(v.hour).padStart(2, '0')}:00`);
+    const valores = lista.map((v) => v.total);
+
+    this.lineChartData = {
+      labels,
+      datasets: [
+        {
+          data: valores,
+          label: 'Faturamento por hora (R$)',
+          fill: false,
+          tension: 0.3,
+          pointRadius: 3,
+        },
+      ],
+    };
+  }
+
 
   carregarTopProdutos(dias: number): void {
     this.diasSelecionadosTop = dias;

@@ -69,3 +69,9 @@ export interface DashboardPagamentoResumo {
   totalPix: number;
   totalGeral: number;
 }
+
+export interface DashboardVendaHora {
+  hour: number;
+  total: number;
+}
+

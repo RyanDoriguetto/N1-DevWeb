@@ -41,4 +41,5 @@
 /app/src/main/java/com/example/coffee/web/dto/ProdutoMesaDTO.java
 /app/src/main/java/com/example/coffee/web/dto/RecentOrderDTO.java
 /app/src/main/java/com/example/coffee/web/dto/SalesByDayDTO.java
+/app/src/main/java/com/example/coffee/web/dto/SalesByHourDTO.java
 /app/src/main/java/com/example/coffee/web/dto/TopProductDTO.java
